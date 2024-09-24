@@ -9,8 +9,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "BodyPart.h"
-
 std::string loadShaderSource(const char* filepath) {
   std::ifstream file(filepath);
   if (!file.is_open()) {
@@ -21,8 +19,7 @@ std::string loadShaderSource(const char* filepath) {
 
   std::stringstream buffer;
   buffer << file.rdbuf();
-  std::cout << "Shader chargé : " << filepath
-            << std::endl;  // Afficher le chemin du shader chargé
+  std::cout << "Shader chargé : " << filepath << std::endl;
   return buffer.str();
 }
 
@@ -95,7 +92,7 @@ GLuint createShaderProgram() {
   glAttachShader(shaderProgram, vertexShader);
   glAttachShader(shaderProgram, fragmentShader);
   glLinkProgram(shaderProgram);
-  checkProgramLinking(shaderProgram);  // Ajout du débogage pour le linking
+  checkProgramLinking(shaderProgram);
 
   // Nettoyer les shaders
   glDeleteShader(vertexShader);
@@ -108,123 +105,55 @@ GLuint createShaderProgram() {
 GLuint VAO, VBO;
 
 // Tableau des positions des sommets d'un cube
-// Les sommets du cube avec 36 entrées pour les triangles (12 triangles, 6
-// faces)
 float vertices[] = {
+    // Positions
     // Face avant
-    -0.5f,
-    -0.5f,
-    0.5f,
-    0.5f,
-    -0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
-    -0.5f,
-    0.5f,
-    0.5f,
-    -0.5f,
-    -0.5f,
-    0.5f,
+    -0.5f, -0.5f, 0.5f,  // Bas gauche
+    0.5f, -0.5f, 0.5f,   // Bas droit
+    0.5f, 0.5f, 0.5f,    // Haut droit
+    0.5f, 0.5f, 0.5f,    // Haut droit
+    -0.5f, 0.5f, 0.5f,   // Haut gauche
+    -0.5f, -0.5f, 0.5f,  // Bas gauche
+
     // Face arrière
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    0.5f,
-    -0.5f,
-    -0.5f,
-    0.5f,
-    0.5f,
-    -0.5f,
-    0.5f,
-    0.5f,
-    -0.5f,
-    -0.5f,
-    0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
+    -0.5f, -0.5f, -0.5f,  // Bas gauche
+    0.5f, -0.5f, -0.5f,   // Bas droit
+    0.5f, 0.5f, -0.5f,    // Haut droit
+    0.5f, 0.5f, -0.5f,    // Haut droit
+    -0.5f, 0.5f, -0.5f,   // Haut gauche
+    -0.5f, -0.5f, -0.5f,  // Bas gauche
+
     // Face gauche
-    -0.5f,
-    0.5f,
-    0.5f,
-    -0.5f,
-    0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    0.5f,
-    -0.5f,
-    0.5f,
-    0.5f,
+    -0.5f, 0.5f, 0.5f,    // Haut avant
+    -0.5f, 0.5f, -0.5f,   // Haut arrière
+    -0.5f, -0.5f, -0.5f,  // Bas arrière
+    -0.5f, -0.5f, -0.5f,  // Bas arrière
+    -0.5f, -0.5f, 0.5f,   // Bas avant
+    -0.5f, 0.5f, 0.5f,    // Haut avant
+
     // Face droite
-    0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
-    -0.5f,
-    0.5f,
-    -0.5f,
-    -0.5f,
-    0.5f,
-    -0.5f,
-    -0.5f,
-    0.5f,
-    -0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
+    0.5f, 0.5f, 0.5f,    // Haut avant
+    0.5f, 0.5f, -0.5f,   // Haut arrière
+    0.5f, -0.5f, -0.5f,  // Bas arrière
+    0.5f, -0.5f, -0.5f,  // Bas arrière
+    0.5f, -0.5f, 0.5f,   // Bas avant
+    0.5f, 0.5f, 0.5f,    // Haut avant
+
     // Face dessus
-    -0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
-    0.5f,
-    -0.5f,
-    0.5f,
-    0.5f,
-    -0.5f,
-    -0.5f,
-    0.5f,
-    -0.5f,
-    -0.5f,
-    0.5f,
-    0.5f,
+    -0.5f, 0.5f, 0.5f,   // Avant gauche
+    0.5f, 0.5f, 0.5f,    // Avant droit
+    0.5f, 0.5f, -0.5f,   // Arrière droit
+    0.5f, 0.5f, -0.5f,   // Arrière droit
+    -0.5f, 0.5f, -0.5f,  // Arrière gauche
+    -0.5f, 0.5f, 0.5f,   // Avant gauche
+
     // Face dessous
-    -0.5f,
-    -0.5f,
-    0.5f,
-    0.5f,
-    -0.5f,
-    0.5f,
-    0.5f,
-    -0.5f,
-    -0.5f,
-    0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    -0.5f,
-    0.5f,
+    -0.5f, -0.5f, 0.5f,   // Avant gauche
+    0.5f, -0.5f, 0.5f,    // Avant droit
+    0.5f, -0.5f, -0.5f,   // Arrière droit
+    0.5f, -0.5f, -0.5f,   // Arrière droit
+    -0.5f, -0.5f, -0.5f,  // Arrière gauche
+    -0.5f, -0.5f, 0.5f,   // Avant gauche
 };
 
 void setupCube() {
@@ -244,11 +173,7 @@ void setupCube() {
   glBindVertexArray(0);
 }
 
-// Variables pour la gestion du temps
-std::chrono::high_resolution_clock::time_point startTime =
-    std::chrono::high_resolution_clock::now();
-
-// Fonction de dessin pour le cube avec rotation sur plusieurs axes
+// Fonction de dessin pour le cube
 void drawCube(GLuint shaderProgram, glm::mat4 model, const glm::mat4& view,
               const glm::mat4& projection) {
   glUseProgram(shaderProgram);
@@ -256,21 +181,6 @@ void drawCube(GLuint shaderProgram, glm::mat4 model, const glm::mat4& view,
   GLuint modelLoc = glGetUniformLocation(shaderProgram, "model");
   GLuint viewLoc = glGetUniformLocation(shaderProgram, "view");
   GLuint projectionLoc = glGetUniformLocation(shaderProgram, "projection");
-
-  // Calculer le temps écoulé pour animer la rotation
-  auto currentTime = std::chrono::high_resolution_clock::now();
-  std::chrono::duration<float> elapsed =
-      std::chrono::duration_cast<std::chrono::duration<float>>(currentTime -
-                                                               startTime);
-  //   float time = elapsed.count();  // Temps écoulé en secondes
-
-  //   // Appliquer une rotation autour des axes Y et X
-  //   model = glm::rotate(model, glm::radians(45.0f) * time,
-  //                       glm::vec3(0.0f, 1.0f, 0.0f));  // Rotation autour de
-  //                       Y
-  //   model = glm::rotate(model, glm::radians(45.0f) * time,
-  //                       glm::vec3(1.0f, 0.0f, 0.0f));  // Rotation autour de
-  //                       X
 
   // Passer les matrices au shader
   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -311,56 +221,101 @@ int main() {
 
   // Matrices de vue et de projection
   glm::mat4 view =
-      glm::lookAt(glm::vec3(0.0f, 0.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f),
+      glm::lookAt(glm::vec3(0.0f, 1.0f, 15.0f), glm::vec3(0.0f, 1.0f, 0.0f),
                   glm::vec3(0.0f, 1.0f, 0.0f));
   glm::mat4 projection =
       glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-
-  // Création des matrices modèle pour chaque partie du corps
-  glm::mat4 torsoModel =
-      glm::scale(glm::mat4(1.0f),
-                 glm::vec3(1.0f, 1.5f, 1.0f));  // Réduire la hauteur du torse
-
-  glm::mat4 headModel = glm::translate(
-      torsoModel, glm::vec3(0.0f, 1.8f, 0.0f));  // Rapprocher la tête du torse
-  headModel = glm::scale(
-      headModel, glm::vec3(0.7f, 0.7f,
-                           0.7f));  // Augmenter légèrement la taille de la tête
-
-  glm::mat4 leftArmModel = glm::translate(
-      torsoModel, glm::vec3(-2.0f, 0.7f, 0.0f));  // Abaisser le bras gauche
-  leftArmModel = glm::scale(leftArmModel,
-                            glm::vec3(0.8f, 1.5f, 0.8f));  // Allonger les bras
-
-  glm::mat4 rightArmModel = glm::translate(
-      torsoModel, glm::vec3(2.0f, 0.7f, 0.0f));  // Abaisser le bras droit
-  rightArmModel = glm::scale(rightArmModel,
-                             glm::vec3(0.8f, 1.5f, 0.8f));  // Allonger les bras
-
-  glm::mat4 leftLegModel = glm::translate(
-      torsoModel, glm::vec3(-0.5f, -2.0f, 0.0f));  // Rapprocher la jambe gauche
-  leftLegModel = glm::scale(
-      leftLegModel,
-      glm::vec3(0.8f, 1.2f, 0.8f));  // Allonger encore légèrement les jambes
-
-  glm::mat4 rightLegModel = glm::translate(
-      torsoModel, glm::vec3(0.5f, -2.0f, 0.0f));  // Rapprocher la jambe droite
-  rightLegModel = glm::scale(
-      rightLegModel,
-      glm::vec3(0.8f, 1.2f, 0.8f));  // Allonger encore légèrement les jambes
 
   // Boucle de rendu
   while (!glfwWindowShouldClose(window)) {
     // Effacer l'écran et le buffer de profondeur
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Utiliser directement la matrice de base pour dessiner les parties
-    drawCube(shaderProgram, torsoModel, view, projection);
-    drawCube(shaderProgram, headModel, view, projection);
-    drawCube(shaderProgram, leftArmModel, view, projection);
-    drawCube(shaderProgram, rightArmModel, view, projection);
-    drawCube(shaderProgram, leftLegModel, view, projection);
-    drawCube(shaderProgram, rightLegModel, view, projection);
+    // Appliquer une rotation globale pour une vue 3/4
+    glm::mat4 globalRotation = glm::rotate(
+        glm::mat4(1.0f), glm::radians(-20.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    // Animation de marche : bras et jambes alternent d'avant en arrière
+    float time = glfwGetTime();  // Temps actuel
+
+    // Calculer l'angle de balancement
+    float swingAngle = glm::radians(30.0f) * sin(time * 2.0f);
+
+    // Appliquer un décalage de phase de 180° entre les membres opposés
+    float armAngleLeft = swingAngle;
+    float armAngleRight = -swingAngle;
+    float legAngleLeft = -swingAngle;
+    float legAngleRight = swingAngle;
+
+    // Torse
+    glm::mat4 torsoModel = glm::mat4(1.0f);
+    torsoModel = glm::translate(torsoModel, glm::vec3(0.0f, 1.0f, 0.0f));
+    torsoModel = glm::scale(torsoModel, glm::vec3(1.0f, 2.0f, 0.5f));
+    torsoModel = globalRotation * torsoModel;
+
+    // Tête
+    glm::mat4 headModel = glm::mat4(1.0f);
+    headModel = glm::translate(headModel, glm::vec3(0.0f, 3.0f, 0.0f));
+    headModel = glm::scale(headModel, glm::vec3(0.7f, 0.7f, 0.5f));
+    headModel = globalRotation * headModel;
+
+    // Longueurs des membres
+    float armLength = 1.5f;
+    float legLength = 2.0f;
+
+    // Positions des articulations
+    glm::vec3 leftShoulderPos = glm::vec3(-1.1f, 2.0f, 0.0f);
+    glm::vec3 rightShoulderPos = glm::vec3(1.1f, 2.0f, 0.0f);
+    glm::vec3 leftHipPos = glm::vec3(-0.5f, 0.0f, 0.0f);
+    glm::vec3 rightHipPos = glm::vec3(0.5f, 0.0f, 0.0f);
+
+    // Bras gauche
+    glm::mat4 leftArmModel = glm::mat4(1.0f);
+    leftArmModel = glm::translate(leftArmModel, leftShoulderPos);
+    leftArmModel =
+        glm::rotate(leftArmModel, armAngleLeft, glm::vec3(1.0f, 0.0f, 0.0f));
+    leftArmModel =
+        glm::translate(leftArmModel, glm::vec3(0.0f, -armLength / 2.0f, 0.0f));
+    leftArmModel = glm::scale(leftArmModel, glm::vec3(0.3f, armLength, 0.3f));
+    leftArmModel = globalRotation * leftArmModel;
+
+    // Bras droit
+    glm::mat4 rightArmModel = glm::mat4(1.0f);
+    rightArmModel = glm::translate(rightArmModel, rightShoulderPos);
+    rightArmModel =
+        glm::rotate(rightArmModel, armAngleRight, glm::vec3(1.0f, 0.0f, 0.0f));
+    rightArmModel =
+        glm::translate(rightArmModel, glm::vec3(0.0f, -armLength / 2.0f, 0.0f));
+    rightArmModel = glm::scale(rightArmModel, glm::vec3(0.3f, armLength, 0.3f));
+    rightArmModel = globalRotation * rightArmModel;
+
+    // Jambe gauche
+    glm::mat4 leftLegModel = glm::mat4(1.0f);
+    leftLegModel = glm::translate(leftLegModel, leftHipPos);
+    leftLegModel =
+        glm::rotate(leftLegModel, legAngleLeft, glm::vec3(1.0f, 0.0f, 0.0f));
+    leftLegModel =
+        glm::translate(leftLegModel, glm::vec3(0.0f, -legLength / 2.0f, 0.0f));
+    leftLegModel = glm::scale(leftLegModel, glm::vec3(0.4f, legLength, 0.4f));
+    leftLegModel = globalRotation * leftLegModel;
+
+    // Jambe droite
+    glm::mat4 rightLegModel = glm::mat4(1.0f);
+    rightLegModel = glm::translate(rightLegModel, rightHipPos);
+    rightLegModel =
+        glm::rotate(rightLegModel, legAngleRight, glm::vec3(1.0f, 0.0f, 0.0f));
+    rightLegModel =
+        glm::translate(rightLegModel, glm::vec3(0.0f, -legLength / 2.0f, 0.0f));
+    rightLegModel = glm::scale(rightLegModel, glm::vec3(0.4f, legLength, 0.4f));
+    rightLegModel = globalRotation * rightLegModel;
+
+    // Dessiner les parties du corps
+    drawCube(shaderProgram, torsoModel, view, projection);     // Torse
+    drawCube(shaderProgram, headModel, view, projection);      // Tête
+    drawCube(shaderProgram, leftArmModel, view, projection);   // Bras gauche
+    drawCube(shaderProgram, rightArmModel, view, projection);  // Bras droit
+    drawCube(shaderProgram, leftLegModel, view, projection);   // Jambe gauche
+    drawCube(shaderProgram, rightLegModel, view, projection);  // Jambe droite
 
     // Afficher le rendu
     glfwSwapBuffers(window);
