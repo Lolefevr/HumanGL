@@ -225,6 +225,15 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
+// Fonction d'interpolation linéaire
+float lerp(float a, float b, float t) { return a + t * (b - a); }
+
+// Fonction smoothstep pour une interpolation plus douce
+float smoothstep(float edge0, float edge1, float x) {
+  x = glm::clamp((x - edge0) / (edge1 - edge0), 0.0f, 1.0f);
+  return x * x * (3 - 2 * x);
+}
+
 int main() {
   // Initialiser GLFW
   if (!initGLFW()) return -1;
@@ -262,15 +271,14 @@ int main() {
   }
 
   // Longueurs des segments (proportions humaines réalistes)
-  float headHeight = 1.0f;
-  float neckHeight =
-      0.1f;  // Réduit pour diminuer l'écart entre la tête et le torse
-  float torsoHeight = 2.2f;  // Torse légèrement raccourci
+  float headHeight = 0.6f;   // Réduit pour une tête plus petite
+  float neckHeight = 0.02f;  // Réduit pour rapprocher la tête du buste
+  float torsoHeight = 2.2f;
   float pelvisHeight = 1.0f;
   float upperArmLength = 1.0f;
   float forearmLength = 1.0f;
-  float thighLength = 1.5f;  // Allongé pour être plus long que le tibia
-  float shinLength = 1.3f;   // Tibia légèrement plus court
+  float thighLength = 1.5f;
+  float shinLength = 1.3f;
 
   // Calculer la hauteur totale du personnage
   float totalHeight = shinLength + thighLength + pelvisHeight + torsoHeight +
@@ -280,15 +288,38 @@ int main() {
   glm::vec3 leftShoulderPos = glm::vec3(-1.0f, torsoHeight / 2.0f - 0.2f, 0.0f);
   glm::vec3 rightShoulderPos = glm::vec3(1.0f, torsoHeight / 2.0f - 0.2f, 0.0f);
   glm::vec3 leftHipPos =
-      glm::vec3(-0.5f, -torsoHeight / 2.0f - pelvisHeight / 2.0f, 0.0f);
+      glm::vec3(-0.5f, -torsoHeight / 2.0f - pelvisHeight / 2.0f + 0.4f, 0.0f);
   glm::vec3 rightHipPos =
-      glm::vec3(0.5f, -torsoHeight / 2.0f - pelvisHeight / 2.0f, 0.0f);
+      glm::vec3(0.5f, -torsoHeight / 2.0f - pelvisHeight / 2.0f + 0.4f, 0.0f);
 
   // Distance de la caméra en fonction de la taille du personnage
-  float cameraDistance = totalHeight * 2.0f;
+  float cameraDistance = totalHeight * 3.0f;
 
   // Champ de vision (FOV)
   float fov = 45.0f;
+
+  // Déclarer les états d'animation
+  enum AnimationState { WALKING, JUMPING, FROM_JUMP_TO_IDLE, IDLE };
+  AnimationState currentState = WALKING;
+  float stateTime = 0.0f;
+  float time = glfwGetTime();
+
+  // Durées des états en secondes
+  const float WALK_DURATION = 3.0f;
+  const float JUMP_DURATION = 2.0f;
+  const float JUMP_TO_IDLE_DURATION = 2.0f;
+  const float IDLE_DURATION = 2.5f;
+
+  // Variables pour l'animation de saut
+  float jumpHeight = 5.0f;  // Hauteur maximale du saut
+
+  // Variables pour l'interpolation
+  float prevKneeAngle = 0.0f;
+  float targetKneeAngle = 0.0f;
+  float prevArmSwing = 0.0f;
+  float targetArmSwing = 0.0f;
+  float prevVerticalMovement = 0.0f;
+  float targetVerticalMovement = 0.0f;
 
   // Boucle de rendu
   while (!glfwWindowShouldClose(window)) {
@@ -296,43 +327,127 @@ int main() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Temps actuel
-    float time = glfwGetTime();
+    float currentTime = glfwGetTime();
+    float deltaTime = currentTime - time;
+    time = currentTime;
+    stateTime += deltaTime;
 
-    // Animation de marche
-    float walkCycle = fmod(time, 2.0f);  // Cycle de 2 secondes
-    float walkPhase = (walkCycle / 2.0f) * 2.0f * glm::pi<float>();
+    // Variables pour l'animation
+    float verticalMovement = 0.0f;
+    float armSwing = 0.0f;
+    float legSwing = 0.0f;
+    float elbowAngle = 0.0f;
+    float kneeAngle = 0.0f;
+    float horizontalMovement = 0.0f;
 
-    // Déplacement horizontal pour simuler la marche
-    float horizontalMovement = 0.0f;  // Garder le personnage centré
+    // Gestion des transitions entre les états
+    switch (currentState) {
+      case WALKING:
+        if (stateTime >= WALK_DURATION) {
+          currentState = JUMPING;
+          stateTime = 0.0f;
+        }
+        break;
+      case JUMPING:
+        if (stateTime >= JUMP_DURATION) {
+          // Enregistrer les valeurs actuelles pour l'interpolation
+          prevKneeAngle = kneeAngle;
+          prevArmSwing = armSwing;
+          prevVerticalMovement = verticalMovement;
 
-    // Mouvement vertical pour simuler le rebond de la marche
-    float verticalMovement = fabs(sin(walkPhase)) * 0.3f;
+          // Définir les cibles pour la transition
+          targetKneeAngle = 0.0f;
+          targetArmSwing = 0.0f;
+          targetVerticalMovement = 0.0f;
 
-    // Balancement des bras et des jambes (segments supérieurs)
-    float armSwing = sin(walkPhase) * glm::radians(30.0f);
-    float legSwing = sin(walkPhase) * glm::radians(30.0f);
+          currentState = FROM_JUMP_TO_IDLE;
+          stateTime = 0.0f;
+        }
+        break;
+      case FROM_JUMP_TO_IDLE:
+        if (stateTime >= JUMP_TO_IDLE_DURATION) {
+          currentState = IDLE;
+          stateTime = 0.0f;
+        }
+        break;
+      case IDLE:
+        if (stateTime >= IDLE_DURATION) {
+          currentState = WALKING;
+          stateTime = 0.0f;
+        }
+        break;
+    }
 
-    // Introduire un décalage pour les segments inférieurs
-    float lowerArmDelay =
-        glm::pi<float>() / 2.0f;  // Décalage de phase pour les avant-bras
-    float lowerLegDelay =
-        glm::pi<float>() / 2.0f;  // Décalage de phase pour les tibias
+    // Calcul des animations en fonction de l'état
+    if (currentState == WALKING) {
+      // Animation de marche
+      float walkCycle = fmod(stateTime, WALK_DURATION) / WALK_DURATION;
+      float walkPhase = walkCycle * 2.0f * glm::pi<float>();
 
-    // Angles pour les coudes et les genoux (segments inférieurs)
-    float elbowAngle =
-        glm::radians(15.0f) +
-        fabs(sin(walkPhase + lowerArmDelay)) * glm::radians(30.0f);
-    float kneeAngle =
-        fabs(sin(walkPhase + lowerLegDelay)) * glm::radians(45.0f);
+      // Déplacement vertical pour simuler le rebond de la marche
+      verticalMovement = fabs(sin(walkPhase)) * 0.3f;
+
+      // Balancement des bras et des jambes
+      armSwing = sin(walkPhase) * glm::radians(30.0f);
+      legSwing = sin(walkPhase) * glm::radians(30.0f);
+
+      // Angles des coudes et genoux
+      elbowAngle =
+          glm::radians(15.0f) + fabs(sin(walkPhase)) * glm::radians(30.0f);
+      kneeAngle = fabs(sin(walkPhase)) * glm::radians(45.0f);
+
+    } else if (currentState == JUMPING) {
+      // Animation de saut avec anticipation
+      float jumpProgress = stateTime / JUMP_DURATION;
+
+      if (jumpProgress < 0.2f) {
+        // Phase d'anticipation (crouch)
+        float crouchAmount = sin(jumpProgress / 0.2f * glm::half_pi<float>());
+        verticalMovement = -crouchAmount * 0.5f;
+        kneeAngle = crouchAmount * glm::radians(60.0f);
+        armSwing = -crouchAmount * glm::radians(30.0f);
+      } else if (jumpProgress < 0.8f) {
+        // Phase d'ascension et descente
+        float jumpPhase = (jumpProgress - 0.2f) / 0.6f * glm::pi<float>();
+        verticalMovement = sin(jumpPhase) * jumpHeight;
+        kneeAngle = (1.0f - sin(jumpPhase)) * glm::radians(30.0f);
+        armSwing = sin(jumpPhase) * glm::radians(20.0f);
+      } else {
+        // Phase d'atterrissage
+        float landProgress = (jumpProgress - 0.8f) / 0.2f;
+        float crouchAmount = sin(landProgress * glm::half_pi<float>());
+        verticalMovement = -crouchAmount * 0.5f;
+        kneeAngle = crouchAmount * glm::radians(60.0f);
+        armSwing = -crouchAmount * glm::radians(30.0f);
+      }
+
+      elbowAngle = glm::radians(10.0f);
+
+    } else if (currentState == FROM_JUMP_TO_IDLE) {
+      // Transition du saut à l'état immobile
+      float t = stateTime / JUMP_TO_IDLE_DURATION;
+      t = smoothstep(0.0f, 3.0f, t);
+      kneeAngle = lerp(prevKneeAngle, targetKneeAngle, t);
+      armSwing = lerp(prevArmSwing, targetArmSwing, t);
+      verticalMovement = lerp(prevVerticalMovement, targetVerticalMovement, t);
+      elbowAngle = glm::radians(15.0f);
+    } else if (currentState == IDLE) {
+      // Posture immobile
+      verticalMovement = 0.0f;
+      armSwing = 0.0f;
+      legSwing = 0.0f;
+      elbowAngle = glm::radians(15.0f);
+      kneeAngle = 0.0f;
+    }
 
     // Légère rotation du torse
-    float torsoRotation = sin(walkPhase) * glm::radians(5.0f);
+    float torsoRotation = sin(time) * glm::radians(5.0f);
 
     // Mouvement de la tête
-    float headTilt = sin(walkPhase + glm::pi<float>()) * glm::radians(5.0f);
+    float headTilt = sin(time + glm::pi<float>()) * glm::radians(5.0f);
 
     // Rotation lente du personnage sur lui-même
-    float selfRotationAngle = time * glm::radians(10.0f);
+    float selfRotationAngle = time * glm::radians(8.0f);
 
     // Appliquer une rotation globale pour une vue 3/4 et la rotation sur
     // lui-même
@@ -362,10 +477,10 @@ int main() {
     torsoModel =
         glm::rotate(torsoModel, torsoRotation, glm::vec3(0.0f, 1.0f, 0.0f));
     torsoModel = glm::translate(
-        torsoModel,
-        glm::vec3(0.0f,
-                  thighLength + shinLength + pelvisHeight + torsoHeight / 2.0f,
-                  0.0f));
+        torsoModel, glm::vec3(0.0f,
+                              thighLength + shinLength + pelvisHeight +
+                                  torsoHeight / 2.0f - 0.4f,
+                              0.0f));
     torsoModel = glm::scale(torsoModel, glm::vec3(1.5f, torsoHeight, 0.7f));
 
     // Pelvis
@@ -375,7 +490,8 @@ int main() {
         glm::rotate(pelvisModel, torsoRotation, glm::vec3(0.0f, 1.0f, 0.0f));
     pelvisModel = glm::translate(
         pelvisModel,
-        glm::vec3(0.0f, thighLength + shinLength + pelvisHeight / 2.0f, 0.0f));
+        glm::vec3(0.0f, thighLength + shinLength + pelvisHeight / 2.0f - 0.4f,
+                  0.0f));
     pelvisModel = glm::scale(pelvisModel, glm::vec3(1.5f, pelvisHeight, 0.8f));
 
     // Tête
@@ -383,13 +499,14 @@ int main() {
     headModel = torsoModel;
     headModel = glm::translate(
         headModel,
-        glm::vec3(0.0f, torsoHeight / 2.0f + neckHeight + headHeight / 2.0f,
+        glm::vec3(0.0f,
+                  torsoHeight / 2.0f + neckHeight + headHeight / 2.0f - 0.15f,
                   0.0f));
     headModel = glm::rotate(headModel, headTilt, glm::vec3(0.0f, 1.0f, 0.0f));
-    headModel = glm::scale(headModel, glm::vec3(0.9f, headHeight, 0.8f));
+    headModel = glm::scale(headModel, glm::vec3(0.6f, headHeight, 0.5f));
 
     // Mouvement latéral des bras
-    float armSideSwing = sin(walkPhase) * glm::radians(5.0f);
+    float armSideSwing = sin(time) * glm::radians(5.0f);
 
     // Bras gauche (haut)
     glm::mat4 leftUpperArmModel = glm::mat4(1.0f);
