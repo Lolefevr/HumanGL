@@ -1,0 +1,105 @@
+
+# Documentation du projet
+
+## Introduction
+
+Ce projet est une simulation de mouvement et d'animation d'un modèle en 3D,
+affichée à l'aide de OpenGL. Le code inclut des transformations de matrices
+et des animations de marche, de saut, et de mouvements alternés. Le projet est
+structuré en plusieurs fichiers :
+
+1. `BodyPart.h` et `BodyPart.cpp` : Gestion des différentes parties du corps et
+   leur relation hiérarchique.
+2. `my_math.h` et `my_math.cpp` : Définition des structures mathématiques
+   (vecteurs, matrices) et opérations nécessaires pour les transformations.
+3. `main.cpp` : Fichier principal qui gère l'affichage, les shaders et
+   l'animation du modèle.
+4. Fichiers shaders : Deux shaders GLSL pour la gestion des vertex et des fragments.
+
+### Identifiants de référence
+Des identifiants uniques sont ajoutés pour chaque section importante du code.
+Ces identifiants permettent de lier chaque explication dans cette documentation
+à la partie correspondante du code.
+
+---
+
+## 1. Fichier `BodyPart.h` [#REF001]
+
+### Description :
+Ce fichier définit la classe `BodyPart`, qui représente une partie du corps du modèle 3D.
+Chaque instance de `BodyPart` peut avoir des enfants, créant ainsi une structure hiérarchique.
+
+### Attributs :
+- `std::string name` : Le nom de la partie du corps.
+- `glm::vec3 size` : Un vecteur qui stocke les dimensions de la partie du corps (largeur, hauteur, profondeur).
+- `glm::mat4 transform` : Une matrice de transformation qui contient la position, l'échelle et la rotation de la partie du corps.
+- `std::vector<BodyPart*> children` : Un vecteur de pointeurs vers les parties enfants, formant une hiérarchie.
+
+### Méthodes :
+- `BodyPart(const std::string& name, const glm::vec3& size)` : Constructeur qui initialise une partie du corps avec un nom et une taille.
+- `addChild(BodyPart* child)` : Ajoute une partie enfant à la partie courante.
+- `applyTransformation(const glm::mat4& parentTransform)` : Applique une transformation à la partie et à ses enfants.
+- `rotate(float angle, const glm::vec3& axis)` : Applique une rotation à la partie du corps autour d'un axe.
+- `translate(const glm::vec3& translation)` : Applique une translation à la partie du corps.
+
+---
+
+## 2. Fichier `my_math.h` et `my_math.cpp` [#REF002]
+
+### Description :
+Ce fichier contient des définitions de structures mathématiques telles que des vecteurs et des matrices.
+Il inclut également des fonctions pour effectuer des transformations comme la rotation, la translation, et l'échelle sur des matrices.
+
+### Structures :
+- `Vec3` : Représente un vecteur 3D avec les composantes `x`, `y`, et `z`.
+  - Opérations supportées : addition, soustraction, multiplication par un scalaire, produit vectoriel (`cross`), produit scalaire (`dot`), et normalisation.
+
+- `Mat4` : Représente une matrice 4x4 pour les transformations dans l'espace 3D.
+  - Méthodes principales :
+    - `identity()` : Retourne une matrice identité.
+    - `translate(const Mat4& mat, const Vec3& vec)` : Applique une translation à une matrice.
+    - `rotate(const Mat4& mat, float angle, const Vec3& axis)` : Applique une rotation autour d'un axe.
+    - `scale(const Mat4& mat, const Vec3& vec)` : Applique une échelle sur une matrice.
+    - `perspective(float fov, float aspect, float near, float far)` : Crée une matrice de projection perspective.
+    - `lookAt(const Vec3& eye, const Vec3& center, const Vec3& up)` : Crée une vue caméra.
+    - `multiply(const Mat4& a, const Mat4& b)` : Multiplie deux matrices 4x4.
+
+- `MatrixStack` : Une classe qui simule une pile de matrices, facilitant la gestion de transformations hiérarchiques.
+
+---
+
+## 3. Fichier `main.cpp` [#REF003]
+
+### Description :
+Le fichier `main.cpp` est le fichier principal du projet. Il initialise OpenGL,
+crée les shaders et gère l'animation du modèle 3D.
+
+### Fonctionnalités principales :
+- `initGLFW()` : Initialise la bibliothèque GLFW pour la création de fenêtres.
+- `setupOpenGL()` : Active les fonctionnalités d'OpenGL, telles que la gestion de la profondeur.
+- `createShaderProgram()` : Charge et compile les shaders à partir de fichiers GLSL.
+- `setupCube()` : Configure les buffers et les données pour dessiner un cube.
+- `drawCube()` : Fonction qui dessine un cube dans la scène, avec les matrices de transformation passées au shader.
+
+### Animation :
+Le modèle suit différents états d'animation, comme la marche (`WALKING`),
+le saut (`JUMPING`), et l'état d'attente (`IDLE`). Chaque état modifie les
+transformations appliquées aux différentes parties du corps du modèle pour simuler des mouvements réalistes.
+
+- **Marche** : Le balancement des bras et des jambes est simulé à l'aide de fonctions trigonométriques.
+- **Saut** : Le modèle saute et revient à la position d'attente après un cycle de saut.
+- **Transitions d'état** : Le modèle passe d'un état à l'autre en fonction du temps écoulé.
+
+---
+
+## 4. Shaders [#REF004]
+
+### Vertex Shader (vertex_shader.glsl)
+Le vertex shader est responsable de transformer les coordonnées des sommets du cube selon la perspective et la vue de la caméra.
+
+### Fragment Shader (fragment_shader.glsl)
+Le fragment shader applique une couleur rouge-orangée aux cubes représentant les parties du corps du modèle.
+
+---
+
+Fin de la documentation.

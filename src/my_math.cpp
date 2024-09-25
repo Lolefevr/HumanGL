@@ -1,46 +1,61 @@
-// my_math.cpp
 #include "my_math.h"
 
-// Implémentations de Vec3
-// (Identiques à la version précédente)
+// --------------------[Implémentations de Vec3]--------------------
 
-Vec3::Vec3() : x(0.0f), y(0.0f), z(0.0f) {}
-Vec3::Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
+Vec3::Vec3()
+    : x(0.0f),
+      y(0.0f),
+      z(0.0f) {
+}  // #REF001: Constructeur par défaut qui initialise un vecteur nul.
 
-Vec3 Vec3::operator+(const Vec3& other) const {
+Vec3::Vec3(float x, float y, float z)
+    : x(x), y(y), z(z) {}  // #REF002: Constructeur qui initialise un vecteur
+                           // avec des valeurs spécifiques.
+
+Vec3 Vec3::operator+(
+    const Vec3& other) const {  // #REF003: Addition de deux vecteurs.
   return Vec3(x + other.x, y + other.y, z + other.z);
 }
 
-Vec3 Vec3::operator-(const Vec3& other) const {
+Vec3 Vec3::operator-(
+    const Vec3& other) const {  // #REF004: Soustraction de deux vecteurs.
   return Vec3(x - other.x, y - other.y, z - other.z);
 }
 
-Vec3 Vec3::operator*(float scalar) const {
+Vec3 Vec3::operator*(float scalar)
+    const {  // #REF005: Multiplication d'un vecteur par un scalaire.
   return Vec3(x * scalar, y * scalar, z * scalar);
 }
 
-Vec3 Vec3::cross(const Vec3& a, const Vec3& b) {
+Vec3 Vec3::cross(
+    const Vec3& a,
+    const Vec3& b) {  // #REF006: Produit vectoriel entre deux vecteurs.
   return Vec3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
               a.x * b.y - a.y * b.x);
 }
 
-float Vec3::dot(const Vec3& a, const Vec3& b) {
+float Vec3::dot(
+    const Vec3& a,
+    const Vec3& b) {  // #REF007: Produit scalaire entre deux vecteurs.
   return a.x * b.x + a.y * b.y + a.z * b.z;
 }
 
-Vec3 Vec3::normalize(const Vec3& v) {
+Vec3 Vec3::normalize(const Vec3& v) {  // #REF008: Normalisation d'un vecteur
+                                       // (le ramène à une longueur de 1).
   float length = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
   if (length == 0.0f) return Vec3(0.0f, 0.0f, 0.0f);
   return Vec3(v.x / length, v.y / length, v.z / length);
 }
 
-// Implémentations de Mat4
+// --------------------[Implémentations de Mat4]--------------------
 
-Mat4::Mat4() {
+Mat4::Mat4() {  // #REF009: Constructeur par défaut qui initialise une matrice
+                // vide (tous les éléments à 0).
   for (int i = 0; i < 16; ++i) m[i] = 0.0f;
 }
 
-Mat4 Mat4::identity() {
+Mat4 Mat4::identity() {  // #REF010: Crée une matrice identité (aucune
+                         // transformation).
   Mat4 result;
   result.m[0 + 0 * 4] = 1.0f;
   result.m[1 + 1 * 4] = 1.0f;
@@ -49,7 +64,9 @@ Mat4 Mat4::identity() {
   return result;
 }
 
-Mat4 Mat4::translate(const Mat4& mat, const Vec3& vec) {
+Mat4 Mat4::translate(
+    const Mat4& mat,
+    const Vec3& vec) {  // #REF011: Applique une translation à une matrice.
   Mat4 result = mat;
   result.m[12] =
       mat.m[0] * vec.x + mat.m[4] * vec.y + mat.m[8] * vec.z + mat.m[12];
@@ -62,7 +79,9 @@ Mat4 Mat4::translate(const Mat4& mat, const Vec3& vec) {
   return result;
 }
 
-Mat4 Mat4::scale(const Mat4& mat, const Vec3& vec) {
+Mat4 Mat4::scale(
+    const Mat4& mat,
+    const Vec3& vec) {  // #REF012: Applique une échelle à une matrice.
   Mat4 result = mat;
   result.m[0] *= vec.x;
   result.m[1] *= vec.x;
@@ -82,7 +101,9 @@ Mat4 Mat4::scale(const Mat4& mat, const Vec3& vec) {
   return result;
 }
 
-Mat4 Mat4::rotate(const Mat4& mat, float angle, const Vec3& axis) {
+Mat4 Mat4::rotate(const Mat4& mat, float angle,
+                  const Vec3& axis) {  // #REF013: Applique une rotation autour
+                                       // d'un axe à une matrice.
   Mat4 result;
   Vec3 normAxis = Vec3::normalize(axis);
   float c = std::cos(angle);
@@ -118,7 +139,8 @@ Mat4 Mat4::rotate(const Mat4& mat, float angle, const Vec3& axis) {
   return result;
 }
 
-Mat4 Mat4::multiply(const Mat4& a, const Mat4& b) {
+Mat4 Mat4::multiply(const Mat4& a,
+                    const Mat4& b) {  // #REF014: Multiplie deux matrices 4x4.
   Mat4 result;
   for (int col = 0; col < 4; ++col) {
     for (int row = 0; row < 4; ++row) {
@@ -131,7 +153,9 @@ Mat4 Mat4::multiply(const Mat4& a, const Mat4& b) {
   return result;
 }
 
-Mat4 Mat4::perspective(float fov, float aspect, float near, float far) {
+Mat4 Mat4::perspective(
+    float fov, float aspect, float near,
+    float far) {  // #REF015: Crée une matrice de projection perspective.
   Mat4 result;
   float tanHalfFovy = std::tan(fov / 2.0f);
 
@@ -143,7 +167,9 @@ Mat4 Mat4::perspective(float fov, float aspect, float near, float far) {
   return result;
 }
 
-Mat4 Mat4::lookAt(const Vec3& eye, const Vec3& center, const Vec3& up) {
+Mat4 Mat4::lookAt(
+    const Vec3& eye, const Vec3& center,
+    const Vec3& up) {  // #REF016: Crée une matrice pour la vue d'une caméra.
   Vec3 f = Vec3::normalize(center - eye);
   Vec3 s = Vec3::normalize(Vec3::cross(f, up));
   Vec3 u = Vec3::cross(s, f);
@@ -168,13 +194,20 @@ Mat4 Mat4::lookAt(const Vec3& eye, const Vec3& center, const Vec3& up) {
   return result;
 }
 
-// Implémentation de MatrixStack
+// --------------------[Implémentation de MatrixStack]--------------------
 
-MatrixStack::MatrixStack() { stack.push_back(Mat4::identity()); }
+MatrixStack::MatrixStack() {  // #REF017: Constructeur, initialise une pile avec
+                              // la matrice identité.
+  stack.push_back(Mat4::identity());
+}
 
-void MatrixStack::push(const Mat4& mat) { stack.push_back(mat); }
+void MatrixStack::push(
+    const Mat4& mat) {  // #REF018: Ajoute une matrice au sommet de la pile.
+  stack.push_back(mat);
+}
 
-Mat4 MatrixStack::pop() {
+Mat4 MatrixStack::pop() {  // #REF019: Retire la matrice du sommet de la pile et
+                           // la retourne.
   if (stack.size() > 1) {
     Mat4 mat = stack.back();
     stack.pop_back();
@@ -184,4 +217,7 @@ Mat4 MatrixStack::pop() {
   }
 }
 
-Mat4 MatrixStack::top() const { return stack.back(); }
+Mat4 MatrixStack::top() const {  // #REF020: Retourne la matrice au sommet de la
+                                 // pile sans la retirer.
+  return stack.back();
+}
