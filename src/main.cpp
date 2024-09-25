@@ -304,6 +304,13 @@ float smoothstep(float edge0, float edge1, float x) {
   return x * x * (3 - 2 * x);
 }
 
+// #Nouveau: Fonction pour restreindre une valeur entre min et max
+float clamp(float value, float minVal, float maxVal) {
+  if (value < minVal) return minVal;
+  if (value > maxVal) return maxVal;
+  return value;
+}
+
 // --------------------[Fonction principale]--------------------
 
 int main() {
@@ -401,6 +408,8 @@ int main() {
   float prevVerticalMovement = 0.0f;
   float targetVerticalMovement =
       0.0f;  // #REF049: Valeurs cibles pour les mouvements de transition.
+  float armRaiseAngle = 45.0f;  // Angle maximal pour lever les bras (en degrés)
+  float armLowerAngle = 0.0f;   // Angle pour redescendre les bras
 
   // --------------------[Boucle principale du programme]--------------------
 
@@ -478,22 +487,37 @@ int main() {
                                            // mouvement vertical.
       float jumpProgress = stateTime / JUMP_DURATION;
 
+      // Lever les bras pendant l’ascension (première moitié du saut)
+      // et redescendre les bras pendant la descente (seconde moitié du saut)
+      if (jumpProgress < 0.5f) {        // Ascension du saut
+        float t = jumpProgress / 0.5f;  // Normalisation entre 0 et 1
+        armSwing =
+            lerp(armLowerAngle, armRaiseAngle, smoothstep(0.0f, 1.0f, t)) *
+            degreesToRadians(1.0f);
+      } else {                                   // Descente du saut
+        float t = (jumpProgress - 0.5f) / 0.5f;  // Normalisation entre 0 et 1
+        armSwing =
+            lerp(armRaiseAngle, armLowerAngle, smoothstep(0.0f, 1.0f, t)) *
+            degreesToRadians(1.0f);
+      }
+
+      // Ajustements supplémentaires pour le mouvement vertical et les jambes
       if (jumpProgress < 0.2f) {
         float crouchAmount = sinf(jumpProgress / 0.2f * (PI / 2.0f));
         verticalMovement = -crouchAmount * 0.5f;
         kneeAngle = crouchAmount * degreesToRadians(60.0f);
-        armSwing = -crouchAmount * degreesToRadians(30.0f);
+        // armSwing est déjà géré ci-dessus
       } else if (jumpProgress < 0.8f) {
         float jumpPhase = (jumpProgress - 0.2f) / 0.6f * PI;
         verticalMovement = sinf(jumpPhase) * jumpHeight;
         kneeAngle = (1.0f - sinf(jumpPhase)) * degreesToRadians(30.0f);
-        armSwing = sinf(jumpPhase) * degreesToRadians(20.0f);
+        // armSwing est déjà géré ci-dessus
       } else {
         float landProgress = (jumpProgress - 0.8f) / 0.2f;
         float crouchAmount = sinf(landProgress * (PI / 2.0f));
         verticalMovement = -crouchAmount * 0.5f;
         kneeAngle = crouchAmount * degreesToRadians(60.0f);
-        armSwing = -crouchAmount * degreesToRadians(30.0f);
+        // armSwing est déjà géré ci-dessus
       }
 
       elbowAngle = degreesToRadians(10.0f);
@@ -508,8 +532,6 @@ int main() {
       armSwing = lerp(prevArmSwing, targetArmSwing, t);
       verticalMovement = lerp(prevVerticalMovement, targetVerticalMovement, t);
       elbowAngle = degreesToRadians(15.0f);
-
-      // État de repos
     } else if (currentState ==
                IDLE) {  // #REF057: Le modèle est en état de repos.
       verticalMovement = 0.0f;
