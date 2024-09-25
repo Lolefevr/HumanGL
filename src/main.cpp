@@ -185,19 +185,74 @@ float vertices[] = {
     -0.5f, -0.5f, 0.5f,   // Avant gauche
 };
 
+// Ajout du tableau des couleurs
+static const GLfloat g_color_buffer_data[] = {
+    // Face avant en rouge
+    1.0f, 0.0f, 0.0f,  // Bas gauche
+    1.0f, 0.0f, 0.0f,  // Bas droit
+    1.0f, 0.0f, 0.0f,  // Haut droit
+    1.0f, 0.0f, 0.0f,  // Haut droit
+    1.0f, 0.0f, 0.0f,  // Haut gauche
+    1.0f, 0.0f, 0.0f,  // Bas gauche
+    // Face arrière en vert
+    0.0f, 1.0f, 0.0f,  // Bas gauche
+    0.0f, 1.0f, 0.0f,  // Bas droit
+    0.0f, 1.0f, 0.0f,  // Haut droit
+    0.0f, 1.0f, 0.0f,  // Haut droit
+    0.0f, 1.0f, 0.0f,  // Haut gauche
+    0.0f, 1.0f, 0.0f,  // Bas gauche
+    // Face gauche en bleu
+    0.0f, 0.0f, 1.0f,  // Haut avant
+    0.0f, 0.0f, 1.0f,  // Haut arrière
+    0.0f, 0.0f, 1.0f,  // Bas arrière
+    0.0f, 0.0f, 1.0f,  // Bas arrière
+    0.0f, 0.0f, 1.0f,  // Bas avant
+    0.0f, 0.0f, 1.0f,  // Haut avant
+    // Face droite en jaune
+    1.0f, 1.0f, 0.0f,  // Haut avant
+    1.0f, 1.0f, 0.0f,  // Haut arrière
+    1.0f, 1.0f, 0.0f,  // Bas arrière
+    1.0f, 1.0f, 0.0f,  // Bas arrière
+    1.0f, 1.0f, 0.0f,  // Bas avant
+    1.0f, 1.0f, 0.0f,  // Haut avant
+    // Face dessus en cyan
+    0.0f, 1.0f, 1.0f,  // Avant gauche
+    0.0f, 1.0f, 1.0f,  // Avant droit
+    0.0f, 1.0f, 1.0f,  // Arrière droit
+    0.0f, 1.0f, 1.0f,  // Arrière droit
+    0.0f, 1.0f, 1.0f,  // Arrière gauche
+    0.0f, 1.0f, 1.0f,  // Avant gauche
+    // Face dessous en magenta
+    1.0f, 0.0f, 1.0f,  // Avant gauche
+    1.0f, 0.0f, 1.0f,  // Avant droit
+    1.0f, 0.0f, 1.0f,  // Arrière droit
+    1.0f, 0.0f, 1.0f,  // Arrière droit
+    1.0f, 0.0f, 1.0f,  // Arrière gauche
+    1.0f, 0.0f, 1.0f   // Avant gauche
+};
+
 // #REF013: Prépare le VAO et VBO pour le rendu d'un cube avec les positions des
 // sommets.
 void setupCube() {
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
+  GLuint colorBuffer;  // Nouveau buffer pour les couleurs
 
   glBindVertexArray(VAO);
 
+  // Buffer des positions des sommets
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
   glEnableVertexAttribArray(0);
+
+  // Génération et liaison du buffer de couleurs
+  glGenBuffers(1, &colorBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data),
+               g_color_buffer_data, GL_STATIC_DRAW);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+  glEnableVertexAttribArray(1);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
@@ -411,7 +466,7 @@ int main() {
 
       verticalMovement = fabsf(sinf(walkPhase)) * 0.2f;
 
-      armSwing = sinf(walkPhase) * degreesToRadians(30.0f);
+      armSwing = -sinf(walkPhase) * degreesToRadians(30.0f);
       legSwing = sinf(walkPhase) * degreesToRadians(30.0f);
 
       elbowAngle = degreesToRadians(15.0f) +

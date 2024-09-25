@@ -103,3 +103,19 @@ Le fragment shader applique une couleur rouge-orangée aux cubes représentant l
 ---
 
 Fin de la documentation.
+
+
+
+
+
+Résumé visuel :
+
+Vecteur 3D = une flèche qui pointe dans une direction.
+Addition/Soustraction = déplacer la flèche en ajoutant une autre flèche.
+Multiplication par un scalaire = allonger ou raccourcir la flèche.
+Produit vectoriel (cross) = une flèche perpendiculaire aux deux autres.
+Produit scalaire (dot) = mesure si les flèches pointent dans la même direction.
+Normalisation = ajuster la flèche pour qu'elle mesure 1.
+Tu n'as pas besoin de maîtriser les maths pour comprendre :
+
+-visualise les flèches dans l'espace, et comment elles peuvent s'ajouter, se croiser, ou changer de taille/direction.
